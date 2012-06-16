@@ -24,8 +24,9 @@ CTS = [ct.decode('hex') for ct in """
 271946f9bbb2aeadec111841a81abc300ecaa01bd8069d5cc91005e9fe4aad6e04d513e96d99de2569bc5e50eeeca709b50a8a987f4264edb6896fb537d0a716132ddc938fb0f836480e06ed0fcd6e9759f40462f9cf57f4564186a2c1778f1543efa270bda5e933421cbe88a4a52222190f471e9bd15f652b653b7071aec59a2705081ffe72651d08f822c9ed6d76e48b63ab15d0208573a7eef027
 
 466d06ece998b7a2fb1d464fed2ced7641ddaa3cc31c9941cf110abbf409ed39598005b3399ccfafb61d0315fca0a314be138a9f32503bedac8067f03adbf3575c3b8edc9ba7f537530541ab0f9f3cd04ff50d66f1d559ba520e89a2cb2a83
+
 """.split()]
-TCT = "32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904"
+TCT = "32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904".decode('hex')
 KEY = list("______________________________________________________________________________________________________________________________________________________________________")
 
 
@@ -37,26 +38,34 @@ def strxor(a, b):     # xor two strings of different lengths
 
 def main():
     for CT1, CT2 in itertools.permutations(CTS, 2):
-        CT1_POS = CTS.index(CT1)
-        CT2_POS = CTS.index(CT2)
         xor = strxor(CT1, CT2)
         for i, c in enumerate(xor):
+            if i >= len(KEY):
+                continue  # we don't care
+            if KEY[i] != '_':
+                continue
             if c in string.ascii_uppercase:
-                if i > len(KEY):
-                    continue  # we don't care
                 for ct in CTS:
                     if i < len(ct) and ct != CT2 and strxor(CT1, ct)[i] in string.ascii_uppercase:
                         # there is a space in CT1 and c lower in CT2
-                        KEY[i] = strxor(CT1[i], ' ')#chr(ord(CT1[i]) ^ ord(' '))
+                        KEY[i] = strxor(CT1[i], ' ')
                         continue
                     if i < len(ct) and ct != CT1 and strxor(CT2, ct)[i] in string.ascii_uppercase:
                         # there is a space in CT2 and c lower in CT1
-                        KEY[i] = strxor(CT2[i], ' ')#chr(ord(CT2[i]) ^ ord(' '))
+                        KEY[i] = strxor(CT2[i], ' ')
                         continue
-        if '_' not in KEY:
-            break  # we found the whole key
-    #rint "key: ", "".join(KEY)
-    print "decrypted text: ", strxor("".join(KEY), TCT.decode('hex'))
+            if c in string.ascii_lowercase:
+                for ct in CTS:
+                    if i < len(ct) and ct != CT2 and strxor(CT1, ct)[i] in string.ascii_lowercase:
+                        # there is a space in CT1 and c lower in CT2
+                        KEY[i] = strxor(CT1[i], ' ')
+                        continue
+                    if i < len(ct) and ct != CT1 and strxor(CT2, ct)[i] in string.ascii_lowercase:
+                        # there is a space in CT2 and c lower in CT1
+                        KEY[i] = strxor(CT2[i], ' ')
+                        continue
+    print KEY
+    print "decrypted text: ", list(strxor("".join(KEY), TCT))
 
 
 if __name__ == '__main__':
