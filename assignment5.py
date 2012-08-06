@@ -1,4 +1,11 @@
+"""Implements meet in the middle attack on discrete log modulo p.
+"""
+
+from __future__ import division
+
 import numbthy
+import gmpy2
+
 
 B = 2 ** 20
 p = 13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084171
@@ -7,7 +14,7 @@ h = 3239475104050450443565264378728065788649097520952449527834792452971981976143
 
 
 def left(x):
-    return h / numbthy.powmod(g, x, p)  # TODO: inverse
+    return gmpy2.divm(h, numbthy.powmod(g, x, p), p)
 
 
 def right(x):
@@ -22,4 +29,8 @@ for i in range(B):
 for i in range(B):
     print i
     if lefts.get(right(i)):
+        x0 = i
+        x1 = lefts[right(i)]
         print 'x0 ', i, ' x1 ',  lefts[right(i)]
+        print x0 * B + x1
+        break
